@@ -1,19 +1,30 @@
-pragma... // Step 1
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.4.21 <0.9.0;
 
+/// @author Matthieu Scarset
+/// @title Submit project to universities.
+contract ProjectSubmission {
+    address private owner;
 
-contract ProjectSubmission { // Step 1
-
-    ...owner... // Step 1 (state variable)
     // ...ownerBalance... // Step 4 (state variable)
-    modifier onlyOwner() { // Step 1
-      ...
+
+    struct University {
+        bool available;
+        uint32 balance;
     }
 
-    struct University { // Step 1
-        ...available...
-        ...balance...
+    mapping(address => University) public universities;
+
+    // Restrict access to contract's owner.
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
     }
-    ...universities... // Step 1 (state variable)
+
+    // Set deployer as the owner.
+    constructor() {
+        owner = msg.sender;
+    }
 
     // enum ProjectStatus { ... } // Step 2
     // struct Project { // Step 2
@@ -24,12 +35,31 @@ contract ProjectSubmission { // Step 1
     // }
     // ...projects... // Step 2 (state variable)
 
-    function registerUniversity... { // Step 1
-      ...
+    /// University registration
+    /// @param _from the account owner for this university
+    /// @dev contract's owner creates a university, saved in state variable.
+    function registerUniversity(address _from) public onlyOwner returns (bool) {
+        // Get existing university.
+        University memory _uni = universities[_from];
+
+        // Prevent registrations if university was disabled by owner or if
+        // university exists (e.g. non-zero balance).
+        require(
+            _uni.available && _uni.balance == 0,
+            "University is locked or has a non-zero balance."
+        );
+
+        // Create or reset university.
+        universities[_from] = University(true, 0);
+        return true;
     }
 
-    function disableUniversity... { // Step 1
-      ...
+    /// Locked a University.
+    /// @param _from the account owner of the university.
+    /// @dev irreversible. should not be called before "registerUniversity()".
+    function disableUniversity(address _from) public onlyOwner returns (bool) {
+        universities[_from].available = false;
+        return true;
     }
 
     // function submitProject... { // Step 2 and 4
