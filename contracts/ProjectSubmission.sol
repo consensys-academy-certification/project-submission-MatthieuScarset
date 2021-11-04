@@ -4,10 +4,16 @@ pragma solidity >=0.4.21 <0.9.0;
 /// @author Matthieu Scarset
 /// @title Submit project to universities.
 contract ProjectSubmission {
+    // =============================================
+    // Contract ownership.
+    // =============================================
     address private owner;
 
     // ...ownerBalance... // Step 4 (state variable)
 
+    // =============================================
+    // Universities.
+    // =============================================
     struct University {
         bool available;
         uint32 balance;
@@ -15,25 +21,50 @@ contract ProjectSubmission {
 
     mapping(address => University) public universities;
 
+    // =============================================
+    // Projects.
+    // =============================================
+    enum ProjectStatus {
+        Waiting,
+        Rejected,
+        Approved,
+        Disabled
+    }
+    ProjectStatus projectStatus;
+
+    struct Project {
+        string document;
+        address author;
+        address university;
+        uint16 status;
+        uint256 balance;
+    }
+
+    mapping(address => Project[]) public projects;
+
+    uint256 projectFeeAmount = 1;
+
+    // =============================================
+    // Modifiers.
+    // =============================================
+
     // Restrict access to contract's owner.
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
 
-    // Set deployer as the owner.
-    constructor() {
-        owner = msg.sender;
-    }
+    // =============================================
+    // Functions.
+    // =============================================
 
-    // enum ProjectStatus { ... } // Step 2
-    // struct Project { // Step 2
-    //     ...author...
-    //     ...university...
-    //     ...status...
-    //     ...balance...
-    // }
-    // ...projects... // Step 2 (state variable)
+    // Deploy this contract.
+    /// @dev Sender is the owner.
+    /// @dev Project fee amount is configurable by owner with setProjectFee().
+    constructor() public {
+        owner = msg.sender;
+        projectFeeAmount = 1;
+    }
 
     /// University registration
     /// @param _from the account owner for this university
@@ -62,9 +93,39 @@ contract ProjectSubmission {
         return true;
     }
 
-    // function submitProject... { // Step 2 and 4
-    //   ...
-    // }
+    /// University registration
+    /// @param _from the student identifier.
+    /// @param _university the university identifier.
+    /// @param _document the hash of the document.
+    /// @dev students must pay a fee to submit project.
+    function submitProject(
+        address _from,
+        address _university,
+        string calldata _document
+    ) external payable returns (bool) {
+        // Check sender balance.
+        require(
+            msg.value >= this.getProjectFee(),
+            "Not enough money to submit project."
+        );
+
+        // Check university exists and accepts project.
+        University memory _uni = universities[_university];
+        require(_uni.available, "University does not exists or is locked");
+
+        Project memory _project = Project(
+            _document,
+            _from,
+            _university,
+            this.getDefaultProjectStatus(),
+            0
+        );
+
+        projects[_university].push(_project);
+
+        // Step 4
+        return true;
+    }
 
     // function disableProject... { // Step 3
     //   ...
@@ -85,4 +146,18 @@ contract ProjectSubmission {
     // function withdraw... {  // Step 5 (Overloading Function)
     //   ...
     // }
+
+    /// Configurable project properties.
+    function getDefaultProjectStatus() public pure returns (uint16) {
+        return uint16(ProjectStatus.Waiting);
+    }
+
+    function setProjectFee(uint256 _amount) public onlyOwner {
+        require(_amount >= 0, "Amount must be greated or equal to zero");
+        projectFeeAmount = _amount;
+    }
+
+    function getProjectFee() public view returns (uint256) {
+        return projectFeeAmount;
+    }
 }
