@@ -36,13 +36,13 @@ contract ProjectSubmission {
         string document;
         address author;
         address university;
-        uint16 status;
-        uint256 balance;
+        int16 status;
+        int256 balance;
     }
 
     mapping(address => Project[]) public projects;
 
-    uint256 projectFeeAmount = 1;
+    int256 projectFeeAmount = 1;
 
     // =============================================
     // Modifiers.
@@ -105,7 +105,7 @@ contract ProjectSubmission {
     ) external payable returns (bool) {
         // Check sender balance.
         require(
-            msg.value >= this.getProjectFee(),
+            int256(msg.value) >= this.getProjectFee(),
             "Not enough money to submit project."
         );
 
@@ -127,13 +127,42 @@ contract ProjectSubmission {
         return true;
     }
 
-    // function disableProject... { // Step 3
-    //   ...
-    // }
+    /// Owner can disabled approved projects.
+    function disableProject(address _author, uint256 i)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        require(
+            projects[_author][i].status != int16(ProjectStatus.Approved),
+            "Project is not approved"
+        );
 
-    // function reviewProject... { // Step 3
-    //   ...
-    // }
+        projects[_author][i].status = int16(ProjectStatus.Disabled);
+        return true;
+    }
+
+    /// Owner can review a project
+    function reviewProject(
+        address _author,
+        uint256 i,
+        int16 _status
+    ) public onlyOwner returns (bool) {
+        if (
+            _status != int16(ProjectStatus.Approved) ||
+            _status != int16(ProjectStatus.Rejected)
+        ) {
+            revert("Unknown status provided.");
+        }
+
+        require(
+            projects[_author][i].status == int16(ProjectStatus.Waiting),
+            "Project was already reviewed."
+        );
+
+        projects[_author][i].status = _status;
+        return true;
+    }
 
     // function donate... { // Step 4
     //   ...
@@ -148,16 +177,16 @@ contract ProjectSubmission {
     // }
 
     /// Configurable project properties.
-    function getDefaultProjectStatus() public pure returns (uint16) {
-        return uint16(ProjectStatus.Waiting);
+    function getDefaultProjectStatus() public pure returns (int16) {
+        return int16(ProjectStatus.Waiting);
     }
 
-    function setProjectFee(uint256 _amount) public onlyOwner {
+    function setProjectFee(int256 _amount) public onlyOwner {
         require(_amount >= 0, "Amount must be greated or equal to zero");
         projectFeeAmount = _amount;
     }
 
-    function getProjectFee() public view returns (uint256) {
+    function getProjectFee() public view returns (int256) {
         return projectFeeAmount;
     }
 }
