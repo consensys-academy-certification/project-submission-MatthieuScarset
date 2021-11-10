@@ -1,4 +1,5 @@
-pragma solidity >=0.5.17 <=0.8.10;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.4.21 <0.9.0;
 
 /// @title Project Submission contract.
 /// @author poulet.eth
@@ -16,14 +17,20 @@ contract ProjectSubmission {
     }
     mapping(address => University) public universities;
 
-    // enum ProjectStatus { ... } // Step 2
-    // struct Project { // Step 2
-    //     ...author...
-    //     ...university...
-    //     ...status...
-    //     ...balance...
-    // }
-    // ...projects... // Step 2 (state variable)
+    enum ProjectStatus {
+        Waiting,
+        Rejected,
+        Approved,
+        Disabled
+    }
+    struct Project {
+        string document;
+        address author;
+        address university;
+        ProjectStatus status;
+        uint256 balance;
+    }
+    Project[] public projects;
 
     constructor() public {
         owner = msg.sender;
@@ -40,10 +47,26 @@ contract ProjectSubmission {
 
     function disableUniversity(address _address)
         public
+        payable
         onlyOwner
         returns (bool)
     {
         universities[_address].available = false;
+        return true;
+    }
+
+    function submitProject(string memory _hash, address _uni)
+        public
+        payable
+        returns (bool)
+    {
+        require(msg.value <= 1 ether, "You need to pay 1ETH fee.");
+        require(universities[_uni].available, "University is not available");
+
+        projects.push(
+            Project(_hash, msg.sender, _uni, ProjectStatus.Waiting, 0)
+        );
+
         return true;
     }
 
