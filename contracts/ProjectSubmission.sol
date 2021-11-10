@@ -1,19 +1,20 @@
-pragma... // Step 1
+pragma solidity >=0.5.17 <=0.8.10;
 
-
-contract ProjectSubmission { // Step 1
-
-    ...owner... // Step 1 (state variable)
+/// @title Project Submission contract.
+/// @author poulet.eth
+contract ProjectSubmission {
+    address public owner;
     // ...ownerBalance... // Step 4 (state variable)
-    modifier onlyOwner() { // Step 1
-      ...
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
     }
 
-    struct University { // Step 1
-        ...available...
-        ...balance...
+    struct University {
+        bool available;
+        uint256 balance;
     }
-    ...universities... // Step 1 (state variable)
+    mapping(address => University) public universities;
 
     // enum ProjectStatus { ... } // Step 2
     // struct Project { // Step 2
@@ -24,12 +25,26 @@ contract ProjectSubmission { // Step 1
     // }
     // ...projects... // Step 2 (state variable)
 
-    function registerUniversity... { // Step 1
-      ...
+    constructor() public {
+        owner = msg.sender;
     }
 
-    function disableUniversity... { // Step 1
-      ...
+    function registerUniversity(address _address)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        universities[_address] = University(true, 0);
+        return true;
+    }
+
+    function disableUniversity(address _address)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        universities[_address].available = false;
+        return true;
     }
 
     // function submitProject... { // Step 2 and 4
