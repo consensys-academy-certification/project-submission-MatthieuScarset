@@ -1,168 +1,48 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.4.21 <0.9.0;
+pragma... // Step 1
 
-/// @author Matthieu Scarset
-/// @title Submit project to universities.
-contract ProjectSubmission {
-    // =============================================
-    // Contract ownership.
-    // =============================================
-    address private owner;
 
+contract ProjectSubmission { // Step 1
+
+    ...owner... // Step 1 (state variable)
     // ...ownerBalance... // Step 4 (state variable)
-
-    // =============================================
-    // Universities.
-    // =============================================
-    struct University {
-        bool available;
-        uint32 balance;
+    modifier onlyOwner() { // Step 1
+      ...
     }
 
-    mapping(address => University) public universities;
-
-    // =============================================
-    // Projects.
-    // =============================================
-    enum ProjectStatus {
-        Waiting,
-        Rejected,
-        Approved,
-        Disabled
+    struct University { // Step 1
+        ...available...
+        ...balance...
     }
-    ProjectStatus projectStatus;
+    ...universities... // Step 1 (state variable)
 
-    struct Project {
-        string document;
-        address author;
-        address university;
-        int16 status;
-        int256 balance;
+    // enum ProjectStatus { ... } // Step 2
+    // struct Project { // Step 2
+    //     ...author...
+    //     ...university...
+    //     ...status...
+    //     ...balance...
+    // }
+    // ...projects... // Step 2 (state variable)
+
+    function registerUniversity... { // Step 1
+      ...
     }
 
-    mapping(address => Project[]) public projects;
-
-    int256 projectFeeAmount = 1;
-
-    // =============================================
-    // Modifiers.
-    // =============================================
-
-    // Restrict access to contract's owner.
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
+    function disableUniversity... { // Step 1
+      ...
     }
 
-    // =============================================
-    // Functions.
-    // =============================================
+    // function submitProject... { // Step 2 and 4
+    //   ...
+    // }
 
-    // Deploy this contract.
-    /// @dev Sender is the owner.
-    /// @dev Project fee amount is configurable by owner with setProjectFee().
-    constructor() public {
-        owner = msg.sender;
-        projectFeeAmount = 1;
-    }
+    // function disableProject... { // Step 3
+    //   ...
+    // }
 
-    /// University registration
-    /// @param _from the account owner for this university
-    /// @dev contract's owner creates a university, saved in state variable.
-    function registerUniversity(address _from) public onlyOwner returns (bool) {
-        // Get existing university.
-        University memory _uni = universities[_from];
-
-        // Prevent registrations if university was disabled by owner or if
-        // university exists (e.g. non-zero balance).
-        require(
-            _uni.available && _uni.balance == 0,
-            "University is locked or has a non-zero balance."
-        );
-
-        // Create or reset university.
-        universities[_from] = University(true, 0);
-        return true;
-    }
-
-    /// Locked a University.
-    /// @param _from the account owner of the university.
-    /// @dev irreversible. should not be called before "registerUniversity()".
-    function disableUniversity(address _from) public onlyOwner returns (bool) {
-        universities[_from].available = false;
-        return true;
-    }
-
-    /// University registration
-    /// @param _from the student identifier.
-    /// @param _university the university identifier.
-    /// @param _document the hash of the document.
-    /// @dev students must pay a fee to submit project.
-    function submitProject(
-        address _from,
-        address _university,
-        string calldata _document
-    ) external payable returns (bool) {
-        // Check sender balance.
-        require(
-            int256(msg.value) >= this.getProjectFee(),
-            "Not enough money to submit project."
-        );
-
-        // Check university exists and accepts project.
-        University memory _uni = universities[_university];
-        require(_uni.available, "University does not exists or is locked");
-
-        Project memory _project = Project(
-            _document,
-            _from,
-            _university,
-            this.getDefaultProjectStatus(),
-            0
-        );
-
-        projects[_university].push(_project);
-
-        // Step 4
-        return true;
-    }
-
-    /// Owner can disabled approved projects.
-    function disableProject(address _author, uint256 i)
-        public
-        onlyOwner
-        returns (bool)
-    {
-        require(
-            projects[_author][i].status != int16(ProjectStatus.Approved),
-            "Project is not approved"
-        );
-
-        projects[_author][i].status = int16(ProjectStatus.Disabled);
-        return true;
-    }
-
-    /// Owner can review a project
-    function reviewProject(
-        address _author,
-        uint256 i,
-        int16 _status
-    ) public onlyOwner returns (bool) {
-        if (
-            _status != int16(ProjectStatus.Approved) ||
-            _status != int16(ProjectStatus.Rejected)
-        ) {
-            revert("Unknown status provided.");
-        }
-
-        require(
-            projects[_author][i].status == int16(ProjectStatus.Waiting),
-            "Project was already reviewed."
-        );
-
-        projects[_author][i].status = _status;
-        return true;
-    }
+    // function reviewProject... { // Step 3
+    //   ...
+    // }
 
     // function donate... { // Step 4
     //   ...
@@ -175,18 +55,4 @@ contract ProjectSubmission {
     // function withdraw... {  // Step 5 (Overloading Function)
     //   ...
     // }
-
-    /// Configurable project properties.
-    function getDefaultProjectStatus() public pure returns (int16) {
-        return int16(ProjectStatus.Waiting);
-    }
-
-    function setProjectFee(int256 _amount) public onlyOwner {
-        require(_amount >= 0, "Amount must be greated or equal to zero");
-        projectFeeAmount = _amount;
-    }
-
-    function getProjectFee() public view returns (int256) {
-        return projectFeeAmount;
-    }
 }
