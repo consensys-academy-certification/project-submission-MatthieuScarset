@@ -74,17 +74,35 @@ contract ProjectSubmission {
         return true;
     }
 
-    // function submitProject... { // Step 2 and 4
-    //   ...
-    // }
+    function reviewProject(string memory _hash, ProjectStatus _status)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        require(
+            projects[_hash].status == ProjectStatus.Waiting,
+            "Project already reviewed"
+        );
 
-    // function disableProject... { // Step 3
-    //   ...
-    // }
+        projects[_hash].status = _status;
 
-    // function reviewProject... { // Step 3
-    //   ...
-    // }
+        return true;
+    }
+
+    function disableProject(string memory _hash)
+        public
+        onlyOwner
+        returns (bool)
+    {
+        require(
+            projects[_hash].status == ProjectStatus.Approved,
+            "Project not approved"
+        );
+
+        projects[_hash].status = ProjectStatus.Disabled;
+
+        return true;
+    }
 
     // function donate... { // Step 4
     //   ...
