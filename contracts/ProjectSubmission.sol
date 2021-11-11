@@ -12,6 +12,7 @@ contract ProjectSubmission {
     }
 
     struct University {
+        address owner;
         bool available;
         uint256 balance;
     }
@@ -24,13 +25,12 @@ contract ProjectSubmission {
         Disabled
     }
     struct Project {
-        string document;
         address author;
         address university;
         ProjectStatus status;
         uint256 balance;
     }
-    Project[] public projects;
+    mapping(string => Project) public projects;
 
     constructor() public {
         owner = msg.sender;
@@ -41,7 +41,9 @@ contract ProjectSubmission {
         onlyOwner
         returns (bool)
     {
-        universities[_address] = University(true, 0);
+        University memory _uni = universities[_address];
+        require(_uni.owner == address(0), "University already registered.");
+        universities[_address] = University(msg.sender, true, 0);
         return true;
     }
 
@@ -60,12 +62,14 @@ contract ProjectSubmission {
         payable
         returns (bool)
     {
-        require(msg.value <= 1 ether, "You need to pay 1ETH fee.");
-        require(universities[_uni].available, "University is not available");
-
-        projects.push(
-            Project(_hash, msg.sender, _uni, ProjectStatus.Waiting, 0)
+        require(msg.value == 1 ether, "You need to pay 1ETH fee.");
+        require(
+            universities[_uni].owner != address(0),
+            "University not registered"
         );
+        require(universities[_uni].available, "University not available");
+
+        projects[_hash] = Project(msg.sender, _uni, ProjectStatus.Waiting, 0);
 
         return true;
     }
