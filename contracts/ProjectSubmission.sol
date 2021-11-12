@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.21 <0.9.0;
+pragma solidity ^0.8.0;
 
 /// @title Project Submission contract.
 /// @author poulet.eth
 contract ProjectSubmission {
     address public owner;
-    // ...ownerBalance... // Step 4 (state variable)
+    uint256 public ownerBalance;
+
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
@@ -32,8 +33,9 @@ contract ProjectSubmission {
     }
     mapping(string => Project) public projects;
 
-    constructor() public {
+    constructor() payable {
         owner = msg.sender;
+        ownerBalance = 0;
     }
 
     function registerUniversity(address _address)
@@ -68,6 +70,8 @@ contract ProjectSubmission {
             "University not registered"
         );
         require(universities[_uni].available, "University not available");
+
+        ownerBalance += msg.value;
 
         projects[_hash] = Project(msg.sender, _uni, ProjectStatus.Waiting, 0);
 
@@ -104,9 +108,24 @@ contract ProjectSubmission {
         return true;
     }
 
-    // function donate... { // Step 4
-    //   ...
-    // }
+    function donate(string memory _hash) public payable returns (bool) {
+        require(msg.value > 0, "A donation must be greater than zero.");
+        require(projects[_hash].status == ProjectStatus.Approved);
+
+        uint256 _donation = msg.value;
+
+        // 70% to the project
+        projects[_hash].balance += ((_donation / 100) * 70);
+
+        // 20% to the contract owner
+        address _uni = projects[_hash].university;
+        universities[_uni].balance += ((_donation / 100) * 20);
+
+        // 10% to the contract owner
+        ownerBalance += ((_donation / 100) * 10);
+
+        return true;
+    }
 
     // function withdraw... { // Step 5
     //   ...
