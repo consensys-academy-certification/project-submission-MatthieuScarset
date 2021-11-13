@@ -127,11 +127,42 @@ contract ProjectSubmission {
         return true;
     }
 
-    // function withdraw... { // Step 5
-    //   ...
-    // }
+    function withdraw() public returns (bool) {
+        address _from = msg.sender;
+        uint256 _amount = 0;
 
-    // function withdraw... {  // Step 5 (Overloading Function)
-    //   ...
-    // }
+        if (msg.sender == owner) {
+            _amount = ownerBalance;
+            ownerBalance = 0;
+        }
+
+        University memory _uni = universities[_from];
+        if (_uni.available && _uni.owner == _from) {
+            _amount = universities[_from].balance;
+            universities[_from].balance = 0;
+        }
+
+        if (_amount > 0) {
+            payable(msg.sender).transfer(_amount);
+            return true;
+        }
+
+        return false;
+    }
+
+    function withdraw(string memory _hash) public returns (bool) {
+        address _from = msg.sender;
+        uint256 _amount = 0;
+
+        if (projects[_hash].author == _from) {
+            _amount = projects[_hash].balance;
+            projects[_hash].balance = 0;
+        }
+
+        if (_amount > 0) {
+            payable(msg.sender).transfer(_amount);
+        }
+
+        return false;
+    }
 }
