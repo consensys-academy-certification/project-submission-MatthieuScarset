@@ -1,7 +1,7 @@
 // ===== DO NOT MODIFY THIS FILE =====
 
 async function getGasCost(promise, txParams) {
-  // For withdraw functions, subtract the value withdrawn from this function return 
+  // For withdraw functions, subtract the value withdrawn from this function return
   const valueTransferred = web3.utils.toBN((!txParams.value)? 0 : txParams.value)
   const senderBalanceBefore = web3.utils.toBN(await web3.eth.getBalance(txParams.from))
   await promise
@@ -41,7 +41,7 @@ contract('ProjectSubmission', accounts => {
   const hashDoc4 = '0x583031D1113aD414F02576BD6afaBfb302140225' // Registered and will be Disabled
   const hashDoc5 = '0xdD870fA1b7C4700F2BD7f44238821C26f7392148' // Registered but never reviewed
   const donator = accounts[8]
-  const attacker = accounts[9] 
+  const attacker = accounts[9]
   const donationValue = web3.utils.toWei('20', 'ether')
   const ProjectStatus = Object.freeze({'Waiting':0, 'Rejected':1, 'Approved':2, 'Disabled':3})
 
@@ -56,7 +56,7 @@ contract('ProjectSubmission', accounts => {
   before("Setup contract", async () => {
     projectSubmission = await ProjectSubmission.new()
   })
-  
+
   describe("Step 1", async() => {
     it("Should store the deployer address as owner", async() => {
       assert.equal(
@@ -90,9 +90,9 @@ contract('ProjectSubmission', accounts => {
       assert.isTrue(
         registeredUniversityA['available'],
         "It was not possible to register a university using the owner's account"
-      )      
+      )
     })
-    
+
     it("Should not allow accounts other than the owner to register a university", async()=>{
       await tryCatch(projectSubmission.registerUniversity(universityB, {from: attacker}))
     })
@@ -113,13 +113,13 @@ contract('ProjectSubmission', accounts => {
       )
     })
 
-    it("Should not allow accounts other than the owner to make a university unavailable for new project submissions", async() => { 
+    it("Should not allow accounts other than the owner to make a university unavailable for new project submissions", async() => {
       await tryCatch(projectSubmission.disableUniversity(universityA, {from: attacker}))
     })
   })
-  
+
   describe("Step 2", async() => {
-    it("Should allow students submit projects by paying a fee of 1 ether", async()=>{ 
+    it("Should allow students submit projects by paying a fee of 1 ether", async()=>{
       const contractBalanceBefore = await web3.eth.getBalance(projectSubmission.address)
       await projectSubmission.submitProject(
         hashDoc1,
@@ -138,7 +138,7 @@ contract('ProjectSubmission', accounts => {
         ),
         txParams
       ))
-      
+
       await projectSubmission.submitProject(
         hashDoc4,
         universityB,
@@ -164,10 +164,10 @@ contract('ProjectSubmission', accounts => {
         universityB,
         projectDoc1['university'],
         "Missing or wrong university address stored in the registered project"
-      )      
+      )
     })
 
-    it("Should not allow students submit projects for disabled universities", async()=>{ 
+    it("Should not allow students submit projects for disabled universities", async()=>{
       await tryCatch(
         projectSubmission.submitProject(
           hashDoc2,
@@ -176,7 +176,7 @@ contract('ProjectSubmission', accounts => {
         ))
     })
 
-    it("Should not allow students submit projects without paying the 1 ether fee", async()=>{ 
+    it("Should not allow students submit projects without paying the 1 ether fee", async()=>{
       await tryCatch(projectSubmission.submitProject(
         hashDoc2,
         universityB,
@@ -184,7 +184,7 @@ contract('ProjectSubmission', accounts => {
       ))
     })
   })
-  
+
   describe("Step 3", async() => {
     it("Should allow the owner to review projects (Reject or Approve)", async() => {
       const txParams = {from: owner}
@@ -217,12 +217,24 @@ contract('ProjectSubmission', accounts => {
       ) && assert.equal(
         projectDoc3['status'],
         ProjectStatus.Approved,
-        "It was not possible to set a project status to Approved using the owner's account"
+        "It was noassert.equal(t possible to set a project status to Approved using the owner's account"
       )
     })
 
     it("Should only allow the owner to review projects", async()=>{
       await tryCatch(projectSubmission.reviewProject(hashDoc4, ProjectStatus.Approved, {from: attacker}))
+    })
+
+    // Make sure hashDoc4 is "Approved", otherwise following test does not work.
+    it("Should allow the owner to approve projects", async()=>{
+      await projectSubmission.reviewProject(hashDoc4, ProjectStatus.Approved);
+      projectDoc4 = await projectSubmission.projects(hashDoc4)
+
+      assert.equal(
+        projectDoc4.status,
+        ProjectStatus.Approved,
+        "It was not possible to approve a project."
+      );
     })
 
     it("Should allow the owner to disable projects", async() => {
@@ -272,7 +284,7 @@ contract('ProjectSubmission', accounts => {
       ))
     })
   })
-  
+
   describe("Step 4", async() => {
     it("Should give all the submission fees to the contract owner", async()=>{
       assert.equal(
@@ -321,8 +333,8 @@ contract('ProjectSubmission', accounts => {
         "Owner balance is not getting 10% of the donations"
       )
     })
-  }) 
-  
+  })
+
   describe("Step 5", async() => {
     it("Should allow the owner withdraw all their available funds", async() => {
       const ownerAccountBalanceBefore = web3.utils.toBN(await web3.eth.getBalance(owner))
