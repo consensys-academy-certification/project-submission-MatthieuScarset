@@ -41,6 +41,7 @@ contract('ProjectSubmission', accounts => {
   const hashDoc4 = '0x583031D1113aD414F02576BD6afaBfb302140225' // Registered and will be Disabled
   const hashDoc5 = '0xdD870fA1b7C4700F2BD7f44238821C26f7392148' // Registered but never reviewed
   const donator = accounts[8]
+  const donatorBis = accounts[2]
   const attacker = accounts[9]
   const donationValue = web3.utils.toWei('20', 'ether')
   const ProjectStatus = Object.freeze({'Waiting':0, 'Rejected':1, 'Approved':2, 'Disabled':3})
@@ -296,7 +297,7 @@ contract('ProjectSubmission', accounts => {
 
     it("Should accept donations to Approved projects", async() => {
       const contractBalanceBefore = await web3.eth.getBalance(projectSubmission.address)
-      await projectSubmission.donate(hashDoc3, {from: donator, value: donationValue})
+      await projectSubmission.donate(hashDoc3, {from: donatorBis, value: donationValue})
       const contractBalanceAfter = await web3.eth.getBalance(projectSubmission.address)
       assert.equal(
         contractBalanceAfter,
@@ -306,9 +307,9 @@ contract('ProjectSubmission', accounts => {
     })
 
     it("Should not accept donations for non-Approved projects", async() => {
-      await tryCatch(projectSubmission.donate(hashDoc1, {from: donator, value: donationValue}))
-      await tryCatch(projectSubmission.donate(hashDoc4, {from: donator, value: donationValue}))
-      await tryCatch(projectSubmission.donate(hashDoc5, {from: donator, value: donationValue}))
+      await tryCatch(projectSubmission.donate(hashDoc1, {from: donatorBis, value: donationValue}))
+      await tryCatch(projectSubmission.donate(hashDoc4, {from: donatorBis, value: donationValue}))
+      await tryCatch(projectSubmission.donate(hashDoc5, {from: donatorBis, value: donationValue}))
     })
 
     it("Should divide donations as following: project 70%, university 20%, owner 10%", async() => {
