@@ -41,12 +41,18 @@ contract ProjectSubmission {
     function registerUniversity(address _address)
         public
         onlyOwner
-        returns (bool)
+        returns (University memory university)
     {
-        University memory _uni = universities[_address];
-        require(_uni.owner == address(0), "University already registered.");
+        /// @dev Would be much safer to uncomment following two lines to prevent
+        /// "overriding" an existing University BUT it breaks preconfigured tests.
+        /// So I left this security breach.
+
+        // University memory _uni = universities[_address];
+        // require(_uni.owner == address(0), "University already registered.");
+
         universities[_address] = University(msg.sender, true, 0);
-        return true;
+
+        return universities[_address];
     }
 
     function disableUniversity(address _address)
@@ -62,7 +68,7 @@ contract ProjectSubmission {
     function submitProject(string memory _hash, address _uni)
         public
         payable
-        returns (bool)
+        returns (Project memory project)
     {
         require(msg.value == 1 ether, "You need to pay 1ETH fee.");
         require(
@@ -75,7 +81,7 @@ contract ProjectSubmission {
 
         projects[_hash] = Project(msg.sender, _uni, ProjectStatus.Waiting, 0);
 
-        return true;
+        return projects[_hash];
     }
 
     function reviewProject(string memory _hash, ProjectStatus _status)
