@@ -226,7 +226,7 @@ contract('ProjectSubmission', accounts => {
       await tryCatch(projectSubmission.reviewProject(hashDoc4, ProjectStatus.Approved, {from: attacker}))
     })
 
-    // Make sure hashDoc4 is "Approved", otherwise following test does not work.
+    // @debug Make sure hashDoc4 is "Approved", otherwise following test does not work.
     it("Should allow the owner to approve projects", async()=>{
       await projectSubmission.reviewProject(hashDoc4, ProjectStatus.Approved);
       projectDoc4 = await projectSubmission.projects(hashDoc4)
