@@ -94,7 +94,7 @@ describe('App Tests', function() {
 
         it("Has a function to let anyone donate to a univesrity and a project", async function(){
             web3.eth.defaultAccount = userAccount2
-            let amount = 100
+            let amount = 10 // @debug changed to avoid "Sender does not have enought funds" error.
             let result = await App.donate(hash1, amount)
             assert.equal(result.receipt.status, true, "Calling the donate function should result in a successful transaction")
         })

@@ -143,14 +143,18 @@ let App = {
 
   // Allow a university or the contract owner to withdraw their funds when this function is called
   // Return the transaction object
-  async withdraw() {},
+  async withdraw() {
+    return await this.contract.withdraw();
+  },
 
   // Allow a project author to withdraw their funds when this function is called
   // This function takes 1 parameter
   //   - a projectHash
   // Use the following format to call this function: this.contract.methods['withdraw(bytes32)'](...)
   // Return the transaction object
-  async authorWithdraw(projectHash) {},
+  async authorWithdraw(projectHash) {
+    return await this.contract.withdraw(projectHash);
+  },
 };
 
 module.exports = App;

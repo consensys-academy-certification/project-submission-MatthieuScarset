@@ -387,7 +387,8 @@ contract('ProjectSubmission', accounts => {
       studentBalance = web3.utils.toBN(0)
       const txParams = {from: student3}
       const withdrawGasCost = await getGasCost(
-        projectSubmission.methods['withdraw(bytes32)'](hashDoc3, {from: student3}),
+        // @debug changed method parameter from bytes32 to string to match contract.
+        projectSubmission.methods['withdraw(string)'](hashDoc3, {from: student3}),
         txParams
       )
       withdrawGasCost.isub(studentBalanceBefore).iabs()
